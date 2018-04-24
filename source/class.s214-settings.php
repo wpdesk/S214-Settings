@@ -685,7 +685,7 @@ class S214_Settings {
 	 * @param string $html
 	 * @param array $args
 	 *
-	 * @return array
+	 * @return string
 	 */
 	private function apply_after_setting_output($html, $args) {
 		return apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -740,7 +740,7 @@ class S214_Settings {
 		$html  = '<input ' . $custom_attributes_html . ' type="text" class="s214-color-picker" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '" data-default-color="' . esc_attr( $default ) . '" />&nbsp;';
 		$html .= '<span class="s214-color-picker-label description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -755,7 +755,7 @@ class S214_Settings {
 	public function descriptive_text_callback( $args ) {
 		$html = wp_kses_post( $args['desc'] );
 
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -798,7 +798,7 @@ class S214_Settings {
 		);
 		$html = '<br /><span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -847,7 +847,7 @@ class S214_Settings {
 			}
 			$html .= '<p class="description">' . $args['desc'] . '</p>';
 
-			echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+			echo $this->apply_after_setting_output($html, $args);
 		}
 	}
 
@@ -970,7 +970,7 @@ class S214_Settings {
 
 			$html .= '<p class="description">' . $args['desc'] . '</p>';
 
-			echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+			echo $this->apply_after_setting_output($html, $args);
 		}
 	}
 
@@ -1040,7 +1040,7 @@ class S214_Settings {
 			$html .= '<a class="button button-primary" href="' . add_query_arg( $this->slug . '-settings-action', 'download_system_info' ) . '">' . __( 'Download System Info File', 's214-settings' ) . '</a>';
 			$html .= '</p>';
 
-			echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+			echo $this->apply_after_setting_output($html, $args);
 		}
 	}
 
@@ -1124,7 +1124,7 @@ class S214_Settings {
 
 		wp_nonce_field( $args['id'] . '-nonce', $args['id'] . '-nonce' );
 
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
