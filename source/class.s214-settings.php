@@ -473,7 +473,7 @@ class S214_Settings {
 			'tooltip_desc'  => isset( $option['tooltip_desc'] )  ? $option['tooltip_desc']   : false
 		);
 
-		$args = array_merge($args, isset($option['custom_args']) ? $option['custom_args']: []);
+		$args = array_merge($args, isset($option['custom_args']) ? $option['custom_args']: array());
 
         return $args;
     }
