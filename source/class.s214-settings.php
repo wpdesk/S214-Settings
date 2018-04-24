@@ -681,10 +681,22 @@ class S214_Settings {
 		return implode( ' ', $custom_attributes );
 	}
 
+	/**
+	 * @param string $html
+	 * @param array $args
+	 *
+	 * @return array
+	 */
 	private function apply_after_setting_output($html, $args) {
 		return apply_filters( $this->func . '_after_setting_output', $html, $args );
     }
 
+	/**
+	 * @param string $html
+	 * @param array $args
+	 *
+	 * @return string
+	 */
 	private function append_description_html($html, $args) {
 		return $html . '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
     }
@@ -884,6 +896,11 @@ class S214_Settings {
 	    ${$this->func . '_options'} = $option;
     }
 
+	/**
+	 * @param array $args
+	 *
+	 * @return string
+	 */
     private function get_std_input_value($args) {
 	    $options = $this->get_global_options();
 	    if( isset( $options[$args['id']] ) ) {
@@ -893,6 +910,11 @@ class S214_Settings {
 	    }
     }
 
+	/**
+	 * @param array $args
+	 *
+	 * @return string
+	 */
     private function get_size_attr($args) {
 	    return ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
     }
