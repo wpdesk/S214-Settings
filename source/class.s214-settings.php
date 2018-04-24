@@ -79,7 +79,7 @@ class S214_Settings {
 	 * @param       string $default_tab The default settings tab to display
 	 * @return      void
 	 */
-	public function __construct( $slug = false, $default_tab = 'general' ) {
+	public function __construct( $slug = '', $default_tab = 'general' ) {
 		// Bail if no slug is specified
 		if( ! $slug ) {
 			return;
@@ -281,7 +281,7 @@ class S214_Settings {
 	 * @param       string $tab The current tab
 	 * @return      array $section The section items
 	 */
-	public function get_settings_tab_sections( $tab = false ) {
+	public function get_settings_tab_sections( $tab = '' ) {
 		$tabs     = false;
 		$sections = $this->get_registered_settings_sections();
 
@@ -538,7 +538,7 @@ class S214_Settings {
 	 * @since       1.0.0
 	 * @param       array $input The value entered in the field
 	 * @global      array ${$this->func . '_options'} The options array
-	 * @return      string $input The sanitized value
+	 * @return      array $input The sanitized value
 	 */
 	public function settings_sanitize( $input = array() ) {
 		global ${$this->func . '_options'};
@@ -643,7 +643,7 @@ class S214_Settings {
 	 *
 	 * @access      public
 	 * @since       1.0.0
-	 * @param       array $input The value entered in the field
+	 * @param       string $input The value entered in the field
 	 * @return      string $input The sanitized value
 	 */
 	public function sanitize_text_field( $input ) {
@@ -706,7 +706,6 @@ class S214_Settings {
 		}
 
 		$default = isset( $args['std'] ) ? $args['std'] : '';
-		$size    = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
 		$html  = '<input type="text" class="s214-color-picker" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '" data-default-color="' . esc_attr( $default ) . '" />&nbsp;';
 		$html .= '<span class="s214-color-picker-label description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
@@ -1145,7 +1144,7 @@ class S214_Settings {
 	 * @return      bool true if we should load scripts, false otherwise
 	 */
 	public function load_scripts( $hook ) {
-		global $typenow, $pagenow, ${$this->func . '_settings_page'};
+		global ${$this->func . '_settings_page'};
 
 		$ret    = false;
 		$pages  = apply_filters( $this->func . '_admin_pages', array( ${$this->func . '_settings_page'} ) );
