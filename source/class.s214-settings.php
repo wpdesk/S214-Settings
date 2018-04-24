@@ -20,6 +20,7 @@ if( ! defined( 'ABSPATH' ) ) {
  */
 class S214_Settings {
 
+	const CUSTOM_ATTRIBUTES_KEY = 'custom_attributes';
 
 	/**
 	 * @var         string $version The settings class version
@@ -473,7 +474,7 @@ class S214_Settings {
 			'tooltip_desc'  => isset( $option['tooltip_desc'] )  ? $option['tooltip_desc']   : false
 		);
 
-		$args = array_merge($args, isset($option['custom_args']) ? $option['custom_args']: array());
+		$args = array_merge($args, isset($option[ self::CUSTOM_ATTRIBUTES_KEY ]) ? $option[ self::CUSTOM_ATTRIBUTES_KEY ]: array());
 
         return $args;
     }
