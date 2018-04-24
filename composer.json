@@ -1,5 +1,5 @@
 {
-    "name": "section214/s214-settings",
+    "name": "wpdesk/s214-settings",
     "type": "library",
     "description": "A PHP library for implementing a simple, transparent WordPress settings panel.",
     "keywords": ["s214", "section214", "settings", "options"],
