@@ -335,13 +335,12 @@ class S214_Settings {
 	 * @since       1.0.0
 	 * @param       string $key The key to retrieve
 	 * @param       mixed $default The default value if key doesn't exist
-	 * @global      array ${$this->func . '_options'} The options array
 	 * @return      mixed $value The value to return
 	 */
 	public function get_option( $key = '', $default = false ) {
-		global ${$this->func . '_options'};
+		$option = $this->get_global_options();
 
-		$value = ! empty( ${$this->func . '_options'}[$key] ) ? ${$this->func . '_options'}[$key] : $default;
+		$value = ! empty( $option[$key] ) ? $option[$key] : $default;
 		$value = apply_filters( $this->func . '_get_option', $value, $key, $default );
 
 		return apply_filters( $this->func . '_get_option_' . $key, $value, $key, $default );
@@ -380,8 +379,9 @@ class S214_Settings {
 
 		// Update the global
 		if( $did_update ) {
-			global ${$this->func . '_options'};
-			${$this->func . '_options'}[$key] = $value;
+		    $global_option = $this->get_global_options();
+			$global_option[$key] = $value;
+		    $this->set_global_options($global_option);
 		}
 
 		return $did_update;
@@ -414,8 +414,7 @@ class S214_Settings {
 
 		// Update the global
 		if( $did_update ) {
-			global ${$this->func . '_options'};
-			${$this->func . '_options'} = $options;
+			$this->set_global_options($options);
 		}
 
 		return $did_update;
@@ -538,11 +537,10 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $input The value entered in the field
-	 * @global      array ${$this->func . '_options'} The options array
 	 * @return      array $input The sanitized value
 	 */
 	public function settings_sanitize( $input = array() ) {
-		global ${$this->func . '_options'};
+		$option = $this->get_global_options();
 
 		$doing_section = false;
 
@@ -562,7 +560,7 @@ class S214_Settings {
 			$input   = apply_filters( $this->func . '_settings_' . $tab . '-' . $section . '_sanitize', $input );
 		}
 
-		$output = array_merge( ${$this->func . '_options'}, $input );
+		$output = array_merge( $option, $input );
 
 		foreach( $setting_types as $key => $type ) {
 			if( empty( $type ) ) {
@@ -683,28 +681,33 @@ class S214_Settings {
 		return implode( ' ', $custom_attributes );
 	}
 
+	private function apply_after_setting_output($html, $args) {
+		return apply_filters( $this->func . '_after_setting_output', $html, $args );
+    }
+
+	private function append_description_html($html, $args) {
+		return $html . '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
+    }
+
 	/**
 	 * Checkbox callback
 	 *
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The plugin options
 	 * @return      void
 	 */
 	public function checkbox_callback( $args ) {
-		global ${$this->func . '_options'};
-
+		$options = $this->get_global_options();
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
 
 		$name    = ' name="' . $this->func . '_settings[' . $args['id'] . ']"';
-		$checked = isset( ${$this->func . '_options'}[$args['id']] ) ? checked( 1, ${$this->func . '_options'}[$args['id']], false ) : '';
+		$checked = isset( $options[$args['id']] ) ? checked( 1, $options[$args['id']], false ) : '';
 
 		$html  = '<input type="hidden"' . $name . ' value="-1" />';
 		$html .= '<input ' . $custom_attributes_html . ' type="checkbox" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="1" ' . $checked . '/>&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -714,19 +717,11 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the settings
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function color_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
+		$value = $this->get_std_input_value($args);
 
 		$default = isset( $args['std'] ) ? $args['std'] : '';
 
@@ -758,14 +753,13 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function editor_callback( $args ) {
-		global ${$this->func . '_options'};
+		$options = $this->get_global_options();
 
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
+		if( isset( $options[$args['id']] ) ) {
+			$value = $options[$args['id']];
 
 			if( empty( $args['allow_blank'] ) && empty( $value ) ) {
 				$value = isset( $args['std'] ) ? $args['std'] : '';
@@ -801,24 +795,15 @@ class S214_Settings {
 	 *
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function html_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
+		$value = $this->get_std_input_value($args);
 
 		$html  = '<textarea ' . $custom_attributes_html . ' class="large-text s214-html" cols="50" rows="5" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -828,11 +813,10 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function multicheck_callback( $args ) {
-		global ${$this->func . '_options'};
+		$options = $this->get_global_options();
 
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
 
@@ -840,7 +824,7 @@ class S214_Settings {
 			$html = '';
 
 			foreach( $args['options'] as $key => $option ) {
-				if( isset( ${$this->func . '_options'}[$args['id']][$key] ) ) {
+				if( isset( $options[$args['id']][$key] ) ) {
 					$enabled = $option;
 				} else {
 					$enabled = isset( $args['std'][$key] ) ? $args['std'][$key] : NULL;
@@ -862,19 +846,11 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function number_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
+		$value = $this->get_std_input_value($args);
 
 		$name     = ' name="' . $this->func . '_settings[' . $args['id'] . ']"';
 		$max      = isset( $args['max'] ) ? $args['max'] : 999999;
@@ -884,10 +860,42 @@ class S214_Settings {
 		$readonly = $args['readonly'] === true ? ' readonly="readonly"' : '';
 
 		$html  = '<input ' . $custom_attributes_html . ' type="number" step="' . esc_attr( $step ) . '" max="' . esc_attr( $max ) . '" min="' . esc_attr( $min ) . '" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="' . esc_attr( stripslashes( $value ) ) . '"' . $readonly . '/>&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
+
+	/**
+     * Get shared options
+     *
+	 * @global array ${$this->func . '_options'} The plugin options
+	 * @return mixed
+	 */
+	private function get_global_options() {
+		global ${$this->func . '_options'};
+		return ${$this->func . '_options'};
+    }
+
+	/**
+	 * @param array $option
+     * @global array ${$this->func . '_options'} The plugin options
+	 */
+    private function set_global_options($option) {
+	    global ${$this->func . '_options'};
+	    ${$this->func . '_options'} = $option;
+    }
+
+    private function get_std_input_value($args) {
+	    $options = $this->get_global_options();
+	    if( isset( $options[$args['id']] ) ) {
+		    return $options[$args['id']];
+	    } else {
+		    return isset( $args['std'] ) ? $args['std'] : '';
+	    }
+    }
+
+    private function get_size_attr($args) {
+	    return ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+    }
 
 
 	/**
@@ -896,26 +904,16 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the settings
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function password_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
-
-		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+		$value = $this->get_std_input_value($args);
+		$size = $this->get_size_attr($args);
 
 		$html  = '<input ' . $custom_attributes_html . ' type="password" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value )  . '" />&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -925,11 +923,10 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function radio_callback( $args ) {
-		global ${$this->func . '_options'};
+		$options = $this->get_global_options();
 
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
 
@@ -939,9 +936,9 @@ class S214_Settings {
 			foreach( $args['options'] as $key => $option ) {
 				$checked = false;
 
-				if( isset( ${$this->func . '_options'}[$args['id']] ) && ${$this->func . '_options'}[$args['id']] == $key ) {
+				if( isset( $options[$args['id']] ) && $options[$args['id']] == $key ) {
 					$checked = true;
-				} elseif( isset( $args['std'] ) && $args['std'] == $key && ! isset( ${$this->func . '_options'}[$args['id']] ) ) {
+				} elseif( isset( $args['std'] ) && $args['std'] == $key && ! isset( $options[$args['id']] ) ) {
 					$checked = true;
 				}
 
@@ -962,19 +959,11 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function select_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
+		$value = $this->get_std_input_value($args);
 
 		$placeholder = isset( $args['placeholder'] ) ? $args['placeholder'] : '';
 		$select2     = isset( $args['select2'] ) ? ' class="s214-select2"' : '';
@@ -1005,9 +994,8 @@ class S214_Settings {
 		}
 
 		$html .= '</select>&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -1019,11 +1007,11 @@ class S214_Settings {
 	 * @return      void
 	 */
 	public function sysinfo_callback( $args ) {
-		global ${$this->func . '_options'};
+		$options = $this->get_global_options();
 
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
 
-		if( ! isset( ${$this->func . '_options'}[$args['tab']] ) || ( isset( ${$this->func . '_options'}[$args['tab']] ) && isset( $_GET['tab'] ) && $_GET['tab'] == ${$this->func . '_options'}[$args['tab']] ) ) {
+		if( ! isset( $options[$args['tab']] ) || ( isset( $options[$args['tab']] ) && isset( $_GET['tab'] ) && $_GET['tab'] == $options[$args['tab']] ) ) {
 			$html  = '<textarea ' . $custom_attributes_html . ' readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="' . $this->func . '-system-info" title="' . __( 'To copy the system info, click below then press Ctrl + C (PC) or Cmd + C (Mac).', 's214-settings' ) . '">' . $this->sysinfo->get_system_info() . '</textarea>';
 			$html .= '<p class="submit">';
 			$html .= '<input type="hidden" name="' . $this->slug . '-settings-action" value="download_system_info" />';
@@ -1040,28 +1028,19 @@ class S214_Settings {
 	 *
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function text_callback( $args ) {
-		global ${$this->func . '_options'};
-
-		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
+	    $custom_attributes_html = $this->get_custom_attribute_html($args);
+		$value = $this->get_std_input_value($args);
 
 		$name     = ' name="' . $this->func . '_settings[' . $args['id'] . ']"';
 		$readonly = $args['readonly'] === true ? ' readonly="readonly"' : '';
 		$size     = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
 		$html  = '<input ' . $custom_attributes_html . ' type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="' . esc_attr( stripslashes( $value ) )  . '"' . $readonly . '/>&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -1070,24 +1049,15 @@ class S214_Settings {
 	 *
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function textarea_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
+		$value = $this->get_std_input_value($args);
 
 		$html  = '<textarea ' . $custom_attributes_html . ' class="large-text" cols="50" rows="5" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -1096,27 +1066,17 @@ class S214_Settings {
 	 *
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function upload_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
-
-		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+		$value = $this->get_std_input_value($args);
+		$size = $this->get_size_attr($args);
 
 		$html  = '<input ' . $custom_attributes_html . ' type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '" />&nbsp;';
 		$html .= '<span><input type="button" class="' . $this->func . '_settings_upload_button button-secondary" value="' . __( 'Upload File', 's214-settings' ) . '" /></span>&nbsp;';
-		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
-
-		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
+		$html .= $this->append_description_html($html, $args);
+		echo $this->apply_after_setting_output($html, $args);
 	}
 
 
@@ -1126,21 +1086,12 @@ class S214_Settings {
 	 * @access      public
 	 * @since       1.0.0
 	 * @param       array $args Arguments passed by the setting
-	 * @global      array ${$this->func . '_options'} The Beacon options
 	 * @return      void
 	 */
 	public function license_key_callback( $args ) {
-		global ${$this->func . '_options'};
-
 		$custom_attributes_html = $this->get_custom_attribute_html($args);
-
-		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
-			$value = ${$this->func . '_options'}[$args['id']];
-		} else {
-			$value = isset( $args['std'] ) ? $args['std'] : '';
-		}
-
-		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
+		$value = $this->get_std_input_value($args);
+		$size = $this->get_size_attr($args);
 
 		$html = '<input ' . $custom_attributes_html . ' type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '" />&nbsp;';
 
