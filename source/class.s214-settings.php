@@ -440,6 +440,43 @@ class S214_Settings {
 		return apply_filters( $this->func . '_get_settings', $settings );
 	}
 
+	/**
+     * Parses html parameters from $option
+     *
+	 * @param string $section
+	 * @param array $option
+	 *
+	 * @return array
+	 */
+	private function prepare_setting_args($section, array $option) {
+		$args = array(
+			'section'       => $section,
+			'id'            => isset( $option['id'] )            ? $option['id']             : null,
+			'desc'          => ! empty( $option['desc'] )        ? $option['desc']           : '',
+			'name'          => isset( $option['name'] )          ? $option['name']           : null,
+			'size'          => isset( $option['size'] )          ? $option['size']           : null,
+			'options'       => isset( $option['options'] )       ? $option['options']        : '',
+			'std'           => isset( $option['std'] )           ? $option['std']            : '',
+			'min'           => isset( $option['min'] )           ? $option['min']            : null,
+			'max'           => isset( $option['max'] )           ? $option['max']            : null,
+			'step'          => isset( $option['step'] )          ? $option['step']           : null,
+			'select2'       => isset( $option['select2'] )       ? $option['select2']        : null,
+			'placeholder'   => isset( $option['placeholder'] )   ? $option['placeholder']    : null,
+			'multiple'      => isset( $option['multiple'] )      ? $option['multiple']       : null,
+			'allow_blank'   => isset( $option['allow_blank'] )   ? $option['allow_blank']    : true,
+			'readonly'      => isset( $option['readonly'] )      ? $option['readonly']       : false,
+			'buttons'       => isset( $option['buttons'] )       ? $option['buttons']        : null,
+			'wpautop'       => isset( $option['wpautop'] )       ? $option['wpautop']        : null,
+			'teeny'         => isset( $option['teeny'] )         ? $option['teeny']          : null,
+			'tab'           => isset( $option['tab'] )           ? $option['tab']            : null,
+			'tooltip_title' => isset( $option['tooltip_title'] ) ? $option['tooltip_title']  : false,
+			'tooltip_desc'  => isset( $option['tooltip_desc'] )  ? $option['tooltip_desc']   : false
+		);
+
+		$args = array_merge($args, isset($option['custom_args']) ? $option['custom_args']: []);
+
+        return $args;
+    }
 
 	/**
 	 * Add settings sections and fields
@@ -484,29 +521,7 @@ class S214_Settings {
 						function_exists( $this->func . '_' . $option['type'] . '_callback' ) ? $this->func . '_' . $option['type'] . '_callback' : ( method_exists( $this, $option['type'] . '_callback' ) ? array( $this, $option['type'] . '_callback' ) : array( $this, 'missing_callback' ) ),
 						$this->func . '_settings_' . $tab . '_' . $section,
 						$this->func . '_settings_' . $tab . '_' . $section,
-						array(
-							'section'       => $section,
-							'id'            => isset( $option['id'] )            ? $option['id']             : null,
-							'desc'          => ! empty( $option['desc'] )        ? $option['desc']           : '',
-							'name'          => isset( $option['name'] )          ? $option['name']           : null,
-							'size'          => isset( $option['size'] )          ? $option['size']           : null,
-							'options'       => isset( $option['options'] )       ? $option['options']        : '',
-							'std'           => isset( $option['std'] )           ? $option['std']            : '',
-							'min'           => isset( $option['min'] )           ? $option['min']            : null,
-							'max'           => isset( $option['max'] )           ? $option['max']            : null,
-							'step'          => isset( $option['step'] )          ? $option['step']           : null,
-							'select2'       => isset( $option['select2'] )       ? $option['select2']        : null,
-							'placeholder'   => isset( $option['placeholder'] )   ? $option['placeholder']    : null,
-							'multiple'      => isset( $option['multiple'] )      ? $option['multiple']       : null,
-							'allow_blank'   => isset( $option['allow_blank'] )   ? $option['allow_blank']    : true,
-							'readonly'      => isset( $option['readonly'] )      ? $option['readonly']       : false,
-							'buttons'       => isset( $option['buttons'] )       ? $option['buttons']        : null,
-							'wpautop'       => isset( $option['wpautop'] )       ? $option['wpautop']        : null,
-							'teeny'         => isset( $option['teeny'] )         ? $option['teeny']          : null,
-							'tab'           => isset( $option['tab'] )           ? $option['tab']            : null,
-							'tooltip_title' => isset( $option['tooltip_title'] ) ? $option['tooltip_title']  : false,
-							'tooltip_desc'  => isset( $option['tooltip_desc'] )  ? $option['tooltip_desc']   : false
-						)
+                        $this->prepare_setting_args($section, $option)
 					);
 				}
 			}
