@@ -664,6 +664,24 @@ class S214_Settings {
 		echo '<hr />';
 	}
 
+	/**
+	 * Get custom attributes.
+	 *
+	 * @param  array $args Field data.
+	 *
+	 * @return string
+     *
+     * @see https://github.com/woocommerce/woocommerce/blob/master/includes/abstracts/abstract-wc-settings-api.php
+	 */
+	private function get_custom_attribute_html( $args ) {
+		$custom_attributes = array();
+		if ( ! empty( $args[self::CUSTOM_ATTRIBUTES_KEY] ) && is_array( $args[self::CUSTOM_ATTRIBUTES_KEY] ) ) {
+			foreach ( $args[self::CUSTOM_ATTRIBUTES_KEY] as $attribute => $attribute_value ) {
+				$custom_attributes[] = esc_attr( $attribute ) . '="' . esc_attr( $attribute_value ) . '"';
+			}
+		}
+		return implode( ' ', $custom_attributes );
+	}
 
 	/**
 	 * Checkbox callback
@@ -677,11 +695,13 @@ class S214_Settings {
 	public function checkbox_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		$name    = ' name="' . $this->func . '_settings[' . $args['id'] . ']"';
 		$checked = isset( ${$this->func . '_options'}[$args['id']] ) ? checked( 1, ${$this->func . '_options'}[$args['id']], false ) : '';
 
 		$html  = '<input type="hidden"' . $name . ' value="-1" />';
-		$html .= '<input type="checkbox" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="1" ' . $checked . '/>&nbsp;';
+		$html .= '<input ' . $custom_attributes_html . ' type="checkbox" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="1" ' . $checked . '/>&nbsp;';
 		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
 		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -700,6 +720,8 @@ class S214_Settings {
 	public function color_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
@@ -708,7 +730,7 @@ class S214_Settings {
 
 		$default = isset( $args['std'] ) ? $args['std'] : '';
 
-		$html  = '<input type="text" class="s214-color-picker" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '" data-default-color="' . esc_attr( $default ) . '" />&nbsp;';
+		$html  = '<input ' . $custom_attributes_html . ' type="text" class="s214-color-picker" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '" data-default-color="' . esc_attr( $default ) . '" />&nbsp;';
 		$html .= '<span class="s214-color-picker-label description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
 		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -785,13 +807,15 @@ class S214_Settings {
 	public function html_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
 		}
 
-		$html  = '<textarea class="large-text s214-html" cols="50" rows="5" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>&nbsp;';
+		$html  = '<textarea ' . $custom_attributes_html . ' class="large-text s214-html" cols="50" rows="5" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>&nbsp;';
 		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
 		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -810,6 +834,8 @@ class S214_Settings {
 	public function multicheck_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( ! empty( $args['options'] ) ) {
 			$html = '';
 
@@ -820,7 +846,7 @@ class S214_Settings {
 					$enabled = isset( $args['std'][$key] ) ? $args['std'][$key] : NULL;
 				}
 
-				$html .= '<input name="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']" id="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']" type="checkbox" value="' . $option . '" ' . checked( $option, $enabled, false ) . ' />&nbsp;';
+				$html .= '<input ' . $custom_attributes_html . ' name="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']" id="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']" type="checkbox" value="' . $option . '" ' . checked( $option, $enabled, false ) . ' />&nbsp;';
 				$html .= '<label for="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']">' . $option . '</label><br />';
 			}
 			$html .= '<p class="description">' . $args['desc'] . '</p>';
@@ -842,6 +868,8 @@ class S214_Settings {
 	public function number_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
@@ -855,7 +883,7 @@ class S214_Settings {
 		$size     = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 		$readonly = $args['readonly'] === true ? ' readonly="readonly"' : '';
 
-		$html  = '<input type="number" step="' . esc_attr( $step ) . '" max="' . esc_attr( $max ) . '" min="' . esc_attr( $min ) . '" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="' . esc_attr( stripslashes( $value ) ) . '"' . $readonly . '/>&nbsp;';
+		$html  = '<input ' . $custom_attributes_html . ' type="number" step="' . esc_attr( $step ) . '" max="' . esc_attr( $max ) . '" min="' . esc_attr( $min ) . '" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="' . esc_attr( stripslashes( $value ) ) . '"' . $readonly . '/>&nbsp;';
 		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
 		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -874,6 +902,8 @@ class S214_Settings {
 	public function password_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
@@ -882,7 +912,7 @@ class S214_Settings {
 
 		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
-		$html  = '<input type="password" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value )  . '" />&nbsp;';
+		$html  = '<input ' . $custom_attributes_html . ' type="password" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value )  . '" />&nbsp;';
 		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
 		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -901,6 +931,8 @@ class S214_Settings {
 	public function radio_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( ! empty( $args['options'] ) ) {
 			$html = '';
 
@@ -913,7 +945,7 @@ class S214_Settings {
 					$checked = true;
 				}
 
-				$html .= '<input name="' . $this->func . '_settings[' . $args['id'] . ']" id="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']" type="radio" value="' . $key . '" ' . checked( true, $checked, false ) . '/>&nbsp;';
+				$html .= '<input ' . $custom_attributes_html . ' name="' . $this->func . '_settings[' . $args['id'] . ']" id="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']" type="radio" value="' . $key . '" ' . checked( true, $checked, false ) . '/>&nbsp;';
 				$html .= '<label for="' . $this->func . '_settings[' . $args['id'] . '][' . $key . ']">' . $option . '</label><br />';
 			}
 
@@ -936,6 +968,8 @@ class S214_Settings {
 	public function select_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
@@ -947,9 +981,9 @@ class S214_Settings {
         $width       = isset( $args['size'] ) ? ' style="width: ' . $args['size'] . '"' : '';
 
 		if( isset( $args['multiple'] ) && $args['multiple'] === true ) {
-			$html = '<select id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . '][]"' . $select2 . ' data-placeholder="' . $placeholder . '" multiple="multiple"' . $width . ' />';
+			$html = '<select ' . $custom_attributes_html . ' id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . '][]"' . $select2 . ' data-placeholder="' . $placeholder . '" multiple="multiple"' . $width . ' />';
 		} else {
-			$html = '<select id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']"' . $select2 . ' data-placeholder="' . $placeholder . '"' . $width . ' />';
+			$html = '<select ' . $custom_attributes_html . ' id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']"' . $select2 . ' data-placeholder="' . $placeholder . '"' . $width . ' />';
 		}
 
 		foreach( $args['options'] as $option => $name ) {
@@ -987,8 +1021,10 @@ class S214_Settings {
 	public function sysinfo_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( ! isset( ${$this->func . '_options'}[$args['tab']] ) || ( isset( ${$this->func . '_options'}[$args['tab']] ) && isset( $_GET['tab'] ) && $_GET['tab'] == ${$this->func . '_options'}[$args['tab']] ) ) {
-			$html  = '<textarea readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="' . $this->func . '-system-info" title="' . __( 'To copy the system info, click below then press Ctrl + C (PC) or Cmd + C (Mac).', 's214-settings' ) . '">' . $this->sysinfo->get_system_info() . '</textarea>';
+			$html  = '<textarea ' . $custom_attributes_html . ' readonly="readonly" onclick="this.focus(); this.select()" id="system-info-textarea" name="' . $this->func . '-system-info" title="' . __( 'To copy the system info, click below then press Ctrl + C (PC) or Cmd + C (Mac).', 's214-settings' ) . '">' . $this->sysinfo->get_system_info() . '</textarea>';
 			$html .= '<p class="submit">';
 			$html .= '<input type="hidden" name="' . $this->slug . '-settings-action" value="download_system_info" />';
 			$html .= '<a class="button button-primary" href="' . add_query_arg( $this->slug . '-settings-action', 'download_system_info' ) . '">' . __( 'Download System Info File', 's214-settings' ) . '</a>';
@@ -1010,6 +1046,8 @@ class S214_Settings {
 	public function text_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
@@ -1020,7 +1058,7 @@ class S214_Settings {
 		$readonly = $args['readonly'] === true ? ' readonly="readonly"' : '';
 		$size     = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
-		$html  = '<input type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="' . esc_attr( stripslashes( $value ) )  . '"' . $readonly . '/>&nbsp;';
+		$html  = '<input ' . $custom_attributes_html . ' type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']"' . $name . ' value="' . esc_attr( stripslashes( $value ) )  . '"' . $readonly . '/>&nbsp;';
 		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
 		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -1038,13 +1076,15 @@ class S214_Settings {
 	public function textarea_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
 			$value = isset( $args['std'] ) ? $args['std'] : '';
 		}
 
-		$html  = '<textarea class="large-text" cols="50" rows="5" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>&nbsp;';
+		$html  = '<textarea ' . $custom_attributes_html . ' class="large-text" cols="50" rows="5" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']">' . esc_textarea( stripslashes( $value ) ) . '</textarea>&nbsp;';
 		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
 		echo apply_filters( $this->func . '_after_setting_output', $html, $args );
@@ -1062,6 +1102,8 @@ class S214_Settings {
 	public function upload_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
@@ -1070,7 +1112,7 @@ class S214_Settings {
 
 		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
-		$html  = '<input type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '" />&nbsp;';
+		$html  = '<input ' . $custom_attributes_html . ' type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( stripslashes( $value ) ) . '" />&nbsp;';
 		$html .= '<span><input type="button" class="' . $this->func . '_settings_upload_button button-secondary" value="' . __( 'Upload File', 's214-settings' ) . '" /></span>&nbsp;';
 		$html .= '<span class="description"><label for="' . $this->func . '_settings[' . $args['id'] . ']">' . $args['desc'] . '</label></span>';
 
@@ -1090,6 +1132,8 @@ class S214_Settings {
 	public function license_key_callback( $args ) {
 		global ${$this->func . '_options'};
 
+		$custom_attributes_html = $this->get_custom_attribute_html($args);
+
 		if( isset( ${$this->func . '_options'}[$args['id']] ) ) {
 			$value = ${$this->func . '_options'}[$args['id']];
 		} else {
@@ -1098,7 +1142,7 @@ class S214_Settings {
 
 		$size = ( isset( $args['size'] ) && ! is_null( $args['size'] ) ) ? $args['size'] : 'regular';
 
-		$html = '<input type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '" />&nbsp;';
+		$html = '<input ' . $custom_attributes_html . ' type="text" class="' . $size . '-text" id="' . $this->func . '_settings[' . $args['id'] . ']" name="' . $this->func . '_settings[' . $args['id'] . ']" value="' . esc_attr( $value ) . '" />&nbsp;';
 
 		if( get_option( $args['options']['is_valid_license_option'] ) ) {
 			$html .= '<input type="submit" class="button-secondary" name="' . $args['id'] . '_deactivate" value="' . __( 'Deactivate License',  's214-settings' ) . '"/>';
