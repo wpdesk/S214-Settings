@@ -11,6 +11,9 @@
         "email": "dgriffiths@section214.com"
       }
     ],
+    "autoload": {
+        "classmap": ["source/"]
+    },
     "support": {
    	  "issues": "https://github.com/Section214/S214-Settings/issues"
     },
